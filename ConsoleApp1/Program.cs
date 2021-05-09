@@ -8,6 +8,14 @@ namespace metjelentes
     {
         class adat
         {
+            public int SzamSzel()
+            {
+                return Int32.Parse(szel.Substring(3, 2));
+            }
+            public string SzepIdo()
+            {
+                return ido.Insert(2, ":");
+            }
             public adat(string varos_,string ido_, string szel_, int hom_)
             {
                 ido = ido_;
@@ -79,7 +87,25 @@ namespace metjelentes
                 }
             }
         }
-        
+
+        class SzelEro
+        {
+            public SzelEro(string varos)
+            {
+                ki = new StreamWriter($"{varos}.txt");
+                ki.WriteLine(varos);
+            }
+            public StreamWriter ki;
+            public void Process(adat ad)
+            {
+                ki.WriteLine($"{ad.SzepIdo()} {new string('#', ad.SzamSzel())}");
+            }
+            public void Close()
+            {
+                ki.Close();
+            }
+        }
+
         static void Main(string[] args)
         {
             #region 1.feladat
@@ -106,7 +132,7 @@ namespace metjelentes
                 //hom.Add(Int32.Parse(tordeltsor[3]));
                 adatok.Add(new adat(tordeltsor[0],tordeltsor[1], tordeltsor[2], Int32.Parse(tordeltsor[3])));
             }
-
+            file.Close();
             #endregion
             #region 2.feladat
             Console.WriteLine("2.feladat:");
@@ -118,11 +144,11 @@ namespace metjelentes
             {
                 if (adotttelep == adatok[i].varos)
                 {
-                    legkesobbimeres = adatok[i].ido;
+                    legkesobbimeres = adatok[i].SzepIdo();
                     break;
                 }
             }
-            Console.WriteLine($"Az utolsó mérési adat a megadott településről {legkesobbimeres.Insert(2, ":")}-kor érkezett.");
+            Console.WriteLine($"Az utolsó mérési adat a megadott településről {legkesobbimeres}-kor érkezett.");
             Console.Write('\n');
             #endregion
             #region 3.feladat
@@ -142,8 +168,8 @@ namespace metjelentes
                     
                 }
             }
-            Console.WriteLine($"A legalacsonyabb hőmérséklet: {adatok[minhomindex].varos} {adatok[minhomindex].ido.Insert(2, ":")} {adatok[minhomindex].hom}  fok.");
-            Console.WriteLine($"A legmagasabb hőmérséklet: {adatok[maxhomindex].varos} {adatok[maxhomindex].ido.Insert(2, ":")} {adatok[maxhomindex].hom} fok.");
+            Console.WriteLine($"A legalacsonyabb hőmérséklet: {adatok[minhomindex].varos} {adatok[minhomindex].SzepIdo()} {adatok[minhomindex].hom}  fok.");
+            Console.WriteLine($"A legmagasabb hőmérséklet: {adatok[maxhomindex].varos} {adatok[maxhomindex].SzepIdo()} {adatok[maxhomindex].hom} fok.");
             Console.Write('\n');
             #endregion
             #region 4.feladat
@@ -185,8 +211,20 @@ namespace metjelentes
             #endregion
             #region 6.feladat
             Console.WriteLine("6.feladat:");
-
-            Console.Write('\n');
+            var varosonkentiszel = new Dictionary<string, SzelEro>();  //=Dictionary<string, SzelEro> 
+            foreach (var ad in adatok)
+            {
+                if (!varosonkentiszel.ContainsKey(ad.varos))
+                {
+                    varosonkentiszel.Add(ad.varos, new SzelEro(ad.varos));
+                }
+                varosonkentiszel[ad.varos].Process(ad);
+            }
+            foreach (var szelero in varosonkentiszel.Values)
+            {
+                szelero.Close();
+            }
+            Console.WriteLine("A fájlok elkészültek.");
             #endregion
         }
     }
